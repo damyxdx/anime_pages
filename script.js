@@ -1,18 +1,21 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
-<script>
 document.addEventListener('DOMContentLoaded', function() {
     const tableBody = document.querySelector("#postsTable tbody");
 
-    // Cargar el archivo Excel
+    // Intentamos cargar el archivo Excel
     fetch('data/instagram_posts_recent.xlsx')
-        .then(response => response.arrayBuffer())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("No se pudo cargar el archivo Excel.");
+            }
+            return response.arrayBuffer();
+        })
         .then(data => {
             const workbook = XLSX.read(data, { type: 'array' });
             const sheetName = workbook.SheetNames[0];
             const sheet = workbook.Sheets[sheetName];
             const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-            // Insertar los datos en la tabla
+            // Insertamos los datos en la tabla
             jsonData.forEach(row => {
                 const tr = document.createElement('tr');
 
@@ -31,6 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const tdImage = document.createElement('td');
                 const img = document.createElement('img');
                 img.src = row['Imagen'];
+                img.alt = "Imagen publicación";
+                img.style.maxWidth = "100px";
                 tdImage.appendChild(img);
                 tr.appendChild(tdImage);
 
@@ -44,6 +49,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 tableBody.appendChild(tr);
             });
+        })
+        .catch(error => {
+            console.error('Error al cargar los datos:', error);
         });
 });
-</script>
+
